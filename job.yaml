@@ -1,0 +1,33 @@
+---
+global:
+  indexerConfig:
+    metricsDirectory: /Users/anjoseph/labs/kube-burner-metrics
+    createTarball: true
+    type: local
+  measurements:
+    - name: pprof
+      pprofInterval: 3m
+      pprofDirectory: /Users/anjoseph/labs/kube-burner-metrics/pprof-data
+      pprofTargets:
+        - name: openshift-gitops-server
+          namespace: "openshift-gitops"
+          labelSelector: {app.kubernetes.io/name: openshift-gitops-server}
+          url: http://localhost:8083/debug/pprof/heap
+        - name: openshift-gitops-server
+          namespace: "openshift-gitops"
+          labelSelector: {app.kubernetes.io/name: openshift-gitops-server}
+          url: http://localhost:8083/debug/pprof/goroutine
+jobs:
+  - name: create-argo-applications
+    jobIterations: 50
+    qps: 20
+    burst: 20
+    namespacedIterations: false
+    namespace: openshift-gitops
+    waitWhenFinished: true
+    podWait: false
+    objects:
+      - objectTemplate: templates/argo-application.yaml
+        replicas: 1
+      - objectTemplate: templates/namespace.yaml
+        replicas: 1
